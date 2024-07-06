@@ -1,8 +1,10 @@
 package com.example.WebBanSach.services;
 
+import com.example.WebBanSach.entity.Order;
 import com.example.WebBanSach.entity.Role;
 import com.example.WebBanSach.entity.User;
 import com.example.WebBanSach.repository.IUserRepository;
+import com.example.WebBanSach.repository.OrderRepository;
 import com.example.WebBanSach.repository.RoleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ public class UserServices {
     private final IUserRepository userRepository;
     private final RoleRepository roleRepository;
 
+
     @Autowired
     public UserServices(IUserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
@@ -28,9 +31,6 @@ public class UserServices {
         createDefaultRoles();
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
     @Transactional
     public void save(User user) {
         //user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
@@ -116,5 +116,8 @@ public class UserServices {
     }
 
 
-
+    @Transactional
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
 }

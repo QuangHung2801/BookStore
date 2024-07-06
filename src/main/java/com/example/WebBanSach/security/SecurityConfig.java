@@ -53,10 +53,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/", "/register", "/error", "/fonts/**", "/Customer/**","/reset-password","/change-password","/users")
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/", "/register", "/error", "/fonts/**", "/Customer/**","/reset-password","/change-password","/users","/status")
                         .permitAll()
+                        .requestMatchers("/Admin/img/**").permitAll()
                         .requestMatchers("/Admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/books/edit", "/books/delete", "/books", "/books/add","/css/**", "/js/**", "/images/**", "/", "/register", "/error", "/fonts/**", "/Customer/**","/reset-password","/change-password")
+                        .requestMatchers("/books/edit", "/books/delete", "/books", "/books/add","/css/**", "/js/**", "/images/**", "/", "/register", "/error", "/fonts/**", "/Customer/**","/reset-password","/change-password","/cart/**")
                         .hasAnyAuthority("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )

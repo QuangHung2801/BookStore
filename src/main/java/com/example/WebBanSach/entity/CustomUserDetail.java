@@ -14,12 +14,15 @@ public class CustomUserDetail  implements UserDetails {
     private final User user;
     private final IUserRepository userRepository;
 
+
     public CustomUserDetail(User user, IUserRepository userRepository) {
 
         this.user = user;
         this.userRepository = userRepository;
     }
-
+    public User getUser() {
+        return user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

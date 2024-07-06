@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
@@ -20,12 +21,17 @@ public class Order {
     private String notes;
     private String paymentMethod;
     private int quantity;
-
+    private String status;
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "order_date")
+    private Date orderDate;
     private double totalPrice;
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails = new ArrayList<>();
@@ -65,6 +71,14 @@ public class Order {
         this.email = email;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public String getNotes() {
         return notes;
     }
@@ -88,6 +102,8 @@ public class Order {
         this.product = product;
     }
 
+
+
     public int getQuantity() {
         return quantity;
     }
@@ -102,4 +118,35 @@ public class Order {
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
+
+    public void setStatus(String status) {
+        this.status=status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+
+public String getStatus() {
+    return status;
+}
+
+    public Date getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(Date orderDate) {
+        this.orderDate = orderDate;
+    }
+
+
 }

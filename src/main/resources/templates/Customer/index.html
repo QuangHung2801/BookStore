@@ -6,7 +6,7 @@
     <title>Trang chủ - EduBook</title>
     <th:block th:replace="layout::link-css-customer"></th:block>
     <style>
-        /* Existing CSS for product cards */
+        /* Additional CSS for product cards */
         .product__card {
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -26,8 +26,7 @@
             font-size: 18px;
             margin-top: 5px;
         }
-        .product__card .btn-add-to-cart,
-        .product__card .btn-view-detail {
+        .product__card .btn-add-to-cart {
             background-color: #28a745;
             color: white;
             border: none;
@@ -35,17 +34,11 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
-            display: inline-block;
         }
-        .product__card .btn-add-to-cart:hover,
-        .product__card .btn-view-detail:hover {
+        .product__card .btn-add-to-cart:hover {
             background-color: #218838;
         }
-        .product__card .btn-view-detail {
-            margin-left: 10px;
-        }
     </style>
-
 </head>
 <body>
 <div class="app">
@@ -93,7 +86,7 @@
                                 </div>
                                 <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="sr-only">Previous</span>
+                                    <span class="sr-only">Previouss</span>
                                 </a>
                                 <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
@@ -139,18 +132,23 @@
                         <!-- Sử dụng Thymeleaf để lặp qua danh sách sản phẩm và hiển thị -->
                         <div th:each="product : ${products}" class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 product__card">
-                                <img class="card-img-top" th:src="@{/Customer/img/{img1}(img1=${product.img1})}" alt="">
+                                <!-- Hình ảnh sản phẩm -->
+                                <img class="card-img-top" th:src="@{/Admin/img/{img1}(img1=${product.img1})}" alt="">
+
                                 <div class="card-body">
+                                    <!-- Tên sản phẩm -->
                                     <h4 th:text="${product.title}" class="card-title product__title"></h4>
+                                    <!-- Giá sản phẩm -->
                                     <h5 th:text="'$' + ${product.price}" class="card-text product__price"></h5>
                                 </div>
+                                <!-- Nút thêm vào giỏ hàng -->
                                 <div class="card-footer">
-                                    <form th:action="@{/cart/add}" method="post" style="display: inline;">
+                                    <form th:action="@{/cart/add}" method="post">
                                         <input type="hidden" name="productId" th:value="${product.id}" />
                                         <input type="hidden" name="quantity" value="1" />
                                         <button type="submit" class="btn btn-primary btn-add-to-cart">Thêm vào giỏ hàng</button>
                                     </form>
-                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-secondary btn-view-detail">Xem chi tiết</a>
+
                                 </div>
                             </div>
                         </div>
@@ -188,6 +186,7 @@
         </div>
     </section>
 
+    <!-- Footer -->
     <th:block th:replace="layout::footer-customer"></th:block>
 </div>
 

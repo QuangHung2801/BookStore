@@ -1,12 +1,11 @@
 package com.example.WebBanSach.Controller;
 
 import com.example.WebBanSach.entity.Category;
+import com.example.WebBanSach.entity.Order;
 import com.example.WebBanSach.entity.Product;
 import com.example.WebBanSach.entity.User;
-import com.example.WebBanSach.services.CategoryService;
-import com.example.WebBanSach.services.ExcelService;
-import com.example.WebBanSach.services.ProductService;
-import com.example.WebBanSach.services.UserServices;
+import com.example.WebBanSach.services.*;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +37,13 @@ public class AdminController {
     private ExcelService excelService;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private ProductService productService;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private CategoryService categoryService;
@@ -56,6 +62,7 @@ public class AdminController {
     }
 
     @GetMapping("/categories/category")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public String showAllCategories(@RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "5") int size,
                                     Model model) {
@@ -76,6 +83,7 @@ public class AdminController {
 //    }
 
     @GetMapping("/products/add_product")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public String showAddProductForm(Model model) {
         model.addAttribute("product", new Product());
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -292,9 +300,9 @@ public class AdminController {
 
     @GetMapping("/categories/category/search")
     public String searchCategories(@RequestParam("name") String name,
-                                   @RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "5") int size,
-                                   Model model) {
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "5") int size,
+                                 Model model) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Category> categoryPage = categoryService.searchCategorysByName(name, pageable);
 
@@ -312,5 +320,69 @@ public class AdminController {
         return "admin/users"; // Ensure this matches the Thymeleaf template name
     }
 
+
+    @GetMapping("/manage-orders")
+    public String manageOrders(Model model) {
+        List<Order> orders = orderService.getAllOrders();
+        model.addAttribute("orders", orders);
+        return "/Admin/manage-orders"; // Adjust this path if necessary
+    }
+
+    @GetMapping("/orders/{orderId}/update-status")
+    public String showUpdateStatusForm(@PathVariable Long orderId, Model model) {
+        Optional<Order> orderOptional = orderService.getOrderById(orderId);
+        if (orderOptional.isPresent()) {
+            model.addAttribute("order", orderOptional.get());
+            return "admin/orders/update-status";
+        } else {
+            // Xử lý khi không tìm thấy đơn hàng
+            return "redirect:/Admin/manage-orders"; // Hoặc hiển thị thông báo lỗi
+        }
+    }
+
+    @PostMapping("/orders/{orderId}/update-status")
+    public String updateOrderStatus(@PathVariable Long orderId,
+                                    @RequestParam("status") String status) {
+        Optional<Order> orderOptional = orderService.getOrderById(orderId);
+
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+
+            // Assuming you want to get the user associated with the order
+            User user = order.getUser(); // Assuming there's a method to retrieve the user associated with the order
+
+            order.setStatus(status);
+            orderService.saveOrder(order, user); // Save the updated order with the associated user
+
+            return "redirect:/Admin/manage-orders"; // Redirect to manage orders page after update
+        } else {
+            // Handle case where order is not found
+            return "redirect:/Admin/manage-orders"; // Or display an error message
+        }
+    }
+
+    @GetMapping("/orders/{orderId}/invoice")
+    public String sendInvoice(@PathVariable Long orderId, RedirectAttributes redirectAttributes) {
+        Optional<Order> orderOptional = orderService.getOrderById(orderId);
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+
+            if ("delivered".equalsIgnoreCase(order.getStatus())) {
+                try {
+                    emailService.sendInvoiceEmail(order, order.getEmail());
+                    redirectAttributes.addFlashAttribute("message", "Hóa đơn đã được gửi tới email của khách hàng.");
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                    redirectAttributes.addFlashAttribute("errorMessage", "Không thể gửi hóa đơn: " + e.getMessage());
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Trạng thái đơn hàng không phải là 'delivered'.");
+            }
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy đơn hàng.");
+        }
+
+        return "redirect:/Admin/manage-orders";
+    }
 
 }

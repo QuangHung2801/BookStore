@@ -1,27 +1,51 @@
 package com.example.WebBanSach.services;
 
+import ch.qos.logback.core.model.Model;
 import com.example.WebBanSach.entity.CartItem;
 import com.example.WebBanSach.entity.Order;
 import com.example.WebBanSach.entity.OrderDetail;
+import com.example.WebBanSach.entity.User;
 import com.example.WebBanSach.repository.ProductRepository;
 import com.example.WebBanSach.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class OrderService {
 
+
+
+
     @Autowired
     private final OrderRepository orderRepository;
+    public List<Order> getOrdersByUser(User user) {
+        return orderRepository.findByUser(user);
+    }
 
-    public void saveOrder(Order order) {
+
+    public void saveOrder(Order order,User user) {
+        order.setUser(user);
         orderRepository.save(order);
     }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public Optional<Order> getOrderById(Long id) {
+        return orderRepository.findById(id);
+    }
+
+
+
 
     private final ProductRepository productRepository;
 
@@ -40,6 +64,31 @@ public class OrderService {
         }
 
         orderRepository.save(order);
+    }
+
+    public void updateOrderStatus(Long orderId, String status) {
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        if (optionalOrder.isPresent()) {
+            Order order = optionalOrder.get();
+            order.setStatus(status);
+            orderRepository.save(order);
+        }
+    }
+
+    public Order changeOrderStatus(Long orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        order.setStatus(newStatus); // Cập nhật trạng thái mới
+
+        // Xử lý logic nếu cần
+
+        return orderRepository.save(order); // Lưu và trả về đơn hàng đã cập nhật
+    }
+
+    // Phương thức để hủy đơn hàng
+    public Order cancelOrder(Long orderId) {
+        return changeOrderStatus(orderId, "Hủy bỏ");
     }
 }
 

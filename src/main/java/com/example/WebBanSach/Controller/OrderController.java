@@ -1,21 +1,19 @@
 package com.example.WebBanSach.Controller;
 
-import com.example.WebBanSach.entity.CartItem;
-import com.example.WebBanSach.entity.Order;
-import com.example.WebBanSach.entity.OrderDetail;
-import com.example.WebBanSach.entity.Product;
+import com.example.WebBanSach.entity.*;
 import com.example.WebBanSach.services.CartService;
 import com.example.WebBanSach.services.OrderService;
 import com.example.WebBanSach.services.ProductService; // Add this import
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -43,6 +41,7 @@ public class OrderController {
                               @RequestParam String notes,
                               @RequestParam String paymentMethod,
                               Model model) {
+
         List<CartItem> cartItems = cartService.getCartItems();
         double totalPrice = cartService.calculateTotalPrice(cartItems);
 
@@ -54,27 +53,25 @@ public class OrderController {
         order.setNotes(notes);
         order.setPaymentMethod(paymentMethod);
         order.setTotalPrice(totalPrice);
+        order.setOrderDate(new Date());
 
-        // Tính tổng số lượng sản phẩm
         int totalQuantity = cartItems.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
 
-        // Trừ số lượng sản phẩm trong kho và tạo OrderDetail
         for (CartItem item : cartItems) {
             Product product = item.getProduct();
             int quantity = item.getQuantity();
 
             if (product.getQuantity() < quantity) {
                 model.addAttribute("error", "Sản phẩm " + product.getTitle() + " không đủ số lượng trong kho.");
-                model.addAttribute("cartItems", cartItems); // Truyền lại danh sách sản phẩm vào model để hiển thị lại
-                return "cart/checkout"; // Trả về lại trang checkout với thông báo lỗi
+                model.addAttribute("cartItems", cartItems);
+                return "cart/checkout";
             }
 
             product.setQuantity(product.getQuantity() - quantity);
             productService.updateProduct(product);
 
-            // Tạo OrderDetail với quantity là số lượng trong giỏ hàng của sản phẩm
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setProduct(product);
             orderDetail.setQuantity(quantity);
@@ -83,11 +80,15 @@ public class OrderController {
             orderDetail.setShippingAddress(shippingAddress);
             orderDetail.setPhoneNumber(phoneNumber);
 
-            // Thêm OrderDetail vào Order
             order.getOrderDetails().add(orderDetail);
         }
 
-        orderService.saveOrder(order);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetail) {
+            CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
+            orderService.saveOrder(order, customUserDetail.getUser());
+        }
+
         cartService.clearCart();
 
         return "redirect:/order/confirmation";
@@ -100,4 +101,7 @@ public class OrderController {
         model.addAttribute("message", "Your order has been successfully placed.");
         return "cart/order-confirmation";
     }
+
+
+
 }

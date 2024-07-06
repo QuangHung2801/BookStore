@@ -62,4 +62,6 @@ public class Product {
                 img1.equals(other.img1) &&
                 user.equals(other.user);
     }
+
+
 }
