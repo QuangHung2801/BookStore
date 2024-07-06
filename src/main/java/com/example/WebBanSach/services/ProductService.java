@@ -55,4 +55,7 @@ public class ProductService {
         return productRepository.findByTitleContaining(title, pageable);
     }
 
+    public List<Product> findRelatedProducts(Long categoryId, Long productId) {
+        return productRepository.findByCategoryIdAndIdNot(categoryId, productId);
+    }
 }
