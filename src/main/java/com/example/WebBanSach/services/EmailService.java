@@ -20,7 +20,7 @@ public class EmailService {
     @Autowired
     private TemplateEngine templateEngine;
 
-    public void sendEmail(String to, String subject, String body) throws MessagingException {
+    public void sendSimpleEmail(String to, String subject, String body) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -29,6 +29,25 @@ public class EmailService {
         helper.setText(body, true);
 
         mailSender.send(message);
+    }
+
+    public void sendEmail(String to, String subject, String name, String email, String phone, String message) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+        Context context = new Context();
+        context.setVariable("name", name);
+        context.setVariable("email", email);
+        context.setVariable("phone", phone);
+        context.setVariable("message", message);
+
+        String body = templateEngine.process("emailTemplate", context);
+
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body, true);
+
+        mailSender.send(mimeMessage);
     }
 
     public void sendInvoiceEmail(Order order, String recipientEmail) throws MessagingException {

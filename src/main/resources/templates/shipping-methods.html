@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Phương thức vận chuyển - EduBook'">Phương thức vận chuyển - EduBook</title>
+    <th:block th:replace="layout::link-css-customer"></th:block>
+</head>
+<body>
+<th:block th:replace="layout::header-customer"></th:block>
+<div layout:decorate="layout">
+    <div layout:fragment="content">
+        <div class="container">
+            <h1>Phương thức vận chuyển</h1>
+            <p>Chi tiết về các phương thức vận chuyển tại EduBook.</p>
+            <h2>Vận chuyển nội thành</h2>
+            <p>Thông tin về vận chuyển nội thành.</p>
+
+            <h2>Vận chuyển ngoại thành</h2>
+            <p>Thông tin về vận chuyển ngoại thành.</p>
+
+            <!-- Thêm các phương thức vận chuyển khác nếu có -->
+        </div>
+    </div>
+</div>
+<th:block th:replace="layout::footer-customer"></th:block>
+</body>
+</html>

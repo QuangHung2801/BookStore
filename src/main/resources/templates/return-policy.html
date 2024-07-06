@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Chính sách đổi trả - EduBook'">Chính sách đổi trả - EduBook</title>
+  <th:block th:replace="layout::link-css-customer"></th:block>
+</head>
+<body>
+<th:block th:replace="layout::header-customer"></th:block>
+<div layout:decorate="layout">
+  <div layout:fragment="content">
+    <div class="container">
+      <h1>Chính sách đổi trả</h1>
+      <p>Chi tiết về chính sách đổi trả tại EduBook.</p>
+      <h2>Điều kiện đổi trả</h2>
+      <p>Thông tin về điều kiện đổi trả.</p>
+      <h2>Quy trình đổi trả</h2>
+      <p>Hướng dẫn quy trình đổi trả.</p>
+      <!-- Thêm các thông tin khác nếu cần -->
+    </div>
+  </div>
+</div>
+<th:block th:replace="layout::footer-customer"></th:block>
+</body>
+</html>

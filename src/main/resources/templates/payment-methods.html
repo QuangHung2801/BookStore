@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Hình thức thanh toán - EduBook'">Hình thức thanh toán - EduBook</title>
+    <th:block th:replace="layout::link-css-customer"></th:block>
+</head>
+<body>
+<th:block th:replace="layout::header-customer"></th:block>
+<div layout:decorate="layout">
+    <div layout:fragment="content">
+        <div class="container">
+            <h1>Hình thức thanh toán</h1>
+            <p>Chi tiết về các hình thức thanh toán tại EduBook.</p>
+            <h2>Thanh toán khi nhận hàng (COD)</h2>
+            <p>Bạn có thể thanh toán bằng tiền mặt khi nhận hàng tại nhà.</p>
+
+            <h2>Chuyển khoản ngân hàng</h2>
+            <p>Thông tin chuyển khoản:</p>
+            <ul>
+                <li>Ngân hàng: XYZ Bank</li>
+                <li>Số tài khoản: 123456789</li>
+                <li>Chủ tài khoản: Nguyễn Văn A</li>
+            </ul>
+
+            <h2>Thanh toán qua ví điện tử MoMo</h2>
+            <p>Hướng dẫn thanh toán qua ví điện tử MoMo.</p>
+
+            <!-- Thêm các hình thức thanh toán khác nếu có -->
+        </div>
+    </div>
+</div>
+<th:block th:replace="layout::footer-customer"></th:block>
+</body>
+</html>
