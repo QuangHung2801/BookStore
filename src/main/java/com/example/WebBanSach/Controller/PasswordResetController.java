@@ -55,7 +55,7 @@ public class PasswordResetController {
             // Send OTP via email
             String subject = "Password Reset OTP";
             String body = "Your OTP for password reset is: " + otp;
-            emailService.sendEmail(email, subject, body);
+            emailService.sendSimpleEmail(email, subject, body);
 
             // Redirect to OTP verification page
             return "redirect:/change-password?token=" + resetToken.getToken();
