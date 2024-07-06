@@ -6,43 +6,102 @@
     <title>Trang chủ - EduBook</title>
     <th:block th:replace="layout::link-css-customer"></th:block>
     <style>
-        /* Existing CSS for product cards */
+        /* Additional CSS for product cards */
        .product__card {
-           border: 1px solid #ddd;
-           border-radius: 8px;
-           padding: 10px;
-           margin-bottom: 20px;
-       }
-       .product__card img {
-           max-width: 100%;
-           height: auto;
-       }
-       .product__card .product__title {
-           font-weight: bold;
-           margin-top: 10px;
-       }
-       .product__card .product__price {
-           color: #007bff;
-           font-size: 18px;
-           margin-top: 5px;
-       }
-       .product__card .btn-add-to-cart,
-       .product__card .btn-view-detail {
-           background-color: #28a745;
-           border: none;
-           padding: 8px 16px;
-           border-radius: 4px;
-           cursor: pointer;
-           transition: background-color 0.3s;
-           display: inline-block;
-       }
-       .product__card .btn-add-to-cart:hover,
-       .product__card .btn-view-detail:hover {
-           background-color: #218838;
-       }
-       .product__card .btn-view-detail {
-           margin-left: 10px;
-       }
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .product__card img {
+            max-width: 100%;
+            height: auto;
+        }
+        .product__card .product__title {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .product__card .product__price {
+            color: #007bff;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        .product__card .btn-add-to-cart,
+        .product__card .btn-view-detail {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-block;
+        }
+        .product__card .btn-add-to-cart:hover,
+        .product__card .btn-view-detail:hover {
+            background-color: #218838;
+        }
+        .product__card .btn-view-detail {
+            margin-left: 10px;
+        }
+        /* Chatbox CSS */
+        .chatbox {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        .chatbox-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .chatbox-body {
+            display: none;
+            background-color: #f9f9f9;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chatbox-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .chatbox-message {
+            margin-bottom: 10px;
+        }
+        .chatbox-message-user {
+            font-weight: bold;
+        }
+        .chatbox-footer {
+            display: none;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .chatbox-footer input {
+            width: calc(100% - 60px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .chatbox-footer button {
+            width: 40px;
+            padding: 8px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -116,7 +175,7 @@
         </div>
     </section>
 
-    <!-- Top bán chạy nhất tuần nay -->
+    <!-- Top bán chạy nhất tuần -->
     <section class="bestselling">
         <div class="container">
             <div class="row">
@@ -127,7 +186,7 @@
             </div>
         </div>
     </section>
-<!--    hello-->
+
     <!-- Danh sách sản phẩm -->
     <section class="products">
         <div class="container">
@@ -185,6 +244,19 @@
             </article>
         </div>
     </section>
+    <!-- Chatbox -->
+    <div class="chatbox">
+        <div class="chatbox-header">Chat với chúng tôi!</div>
+        <div class="chatbox-body">
+            <ul class="chatbox-messages">
+                <!-- Messages will be dynamically added here -->
+            </ul>
+        </div>
+        <div class="chatbox-footer">
+            <input type="text" placeholder="Nhập tin nhắn...">
+            <button>Gửi</button>
+        </div>
+    </div>
 
     <!-- Footer -->
     <th:block th:replace="layout::footer-customer"></th:block>
@@ -193,5 +265,61 @@
 <!-- Scripts -->
 <script src="Customer/js/jq.js"></script>
 <script src="Customer/js/index.js"></script>
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/public', function (chatMessage) {
+                showMessage(JSON.parse(chatMessage.body));
+            });
+        });
+    }
+
+    function sendMessage() {
+        var messageInput = document.querySelector('.chatbox-footer input');
+        var message = messageInput.value;
+        if (message.trim() !== '') {
+            var chatMessage = {
+                sender: 'Customer', // Replace with the user's name or identifier
+                content: message,
+                type: 'CHAT'
+            };
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+            messageInput.value = '';
+        }
+    }
+
+    function showMessage(message) {
+        var messages = document.querySelector('.chatbox-messages');
+        var newMessage = document.createElement('li');
+        newMessage.className = 'chatbox-message';
+        newMessage.innerHTML = '<span class="chatbox-message-user">' + message.sender + ':</span> ' + message.content;
+        messages.appendChild(newMessage);
+        var chatboxBody = document.querySelector('.chatbox-body');
+        chatboxBody.scrollTop = chatboxBody.scrollHeight;
+    }
+
+    document.querySelector('.chatbox-header').addEventListener('click', function() {
+        var chatboxBody = document.querySelector('.chatbox-body');
+        var chatboxFooter = document.querySelector('.chatbox-footer');
+        if (chatboxBody.style.display === 'block') {
+            chatboxBody.style.display = 'none';
+            chatboxFooter.style.display = 'none';
+        } else {
+            chatboxBody.style.display = 'block';
+            chatboxFooter.style.display = 'block';
+        }
+    });
+
+    document.querySelector('.chatbox-footer button').addEventListener('click', function() {
+        sendMessage();
+    });
+
+    connect();
+</script>
 </body>
 </html>
