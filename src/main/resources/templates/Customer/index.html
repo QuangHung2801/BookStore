@@ -144,7 +144,7 @@
                                 </div>
                                 <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="sr-only">Previouss</span>
+                                    <span class="sr-only">Previous</span>
                                 </a>
                                 <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
@@ -191,7 +191,7 @@
                         <div th:each="product : ${products}" class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 product__card">
                                 <!-- Hình ảnh sản phẩm -->
-                                <img class="card-img-top" th:src="@{/Admin/img/{img1}(img1=${product.img1})}" alt="">
+                                <img class="card-img-top" th:src="@{/Customer/img/{img1}(img1=${product.img1})}" alt="">
 
                                 <div class="card-body">
                                     <!-- Tên sản phẩm -->
@@ -264,6 +264,8 @@
 <!-- Scripts -->
 <script src="Customer/js/jq.js"></script>
 <script src="Customer/js/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     var stompClient = null;
 
