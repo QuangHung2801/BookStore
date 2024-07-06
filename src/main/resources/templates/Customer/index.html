@@ -196,18 +196,24 @@
                         <!-- Sử dụng Thymeleaf để lặp qua danh sách sản phẩm và hiển thị -->
                         <div th:each="product : ${products}" class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 product__card">
+                                <!-- Hình ảnh sản phẩm -->
                                 <img class="card-img-top" th:src="@{/Customer/img/{img1}(img1=${product.img1})}" alt="">
+
                                 <div class="card-body">
+                                    <!-- Tên sản phẩm -->
                                     <h4 th:text="${product.title}" class="card-title product__title"></h4>
+                                    <!-- Giá sản phẩm -->
                                     <h5 th:text="'$' + ${product.price}" class="card-text product__price"></h5>
                                 </div>
+                                <!-- Nút thêm vào giỏ hàng -->
                                 <div class="card-footer">
-                                    <form th:action="@{/cart/add}" method="post" style="display: inline;">
+                                    <form th:action="@{/cart/add}" method="post">
                                         <input type="hidden" name="productId" th:value="${product.id}" />
                                         <input type="hidden" name="quantity" value="1" />
                                         <button type="submit" class="btn btn-primary btn-add-to-cart">Thêm vào giỏ hàng</button>
+                                        <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-secondary btn-view-detail">Xem chi tiết</a>
                                     </form>
-                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-secondary btn-view-detail">Xem chi tiết</a>
+
                                 </div>
                             </div>
                         </div>
