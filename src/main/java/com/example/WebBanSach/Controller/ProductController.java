@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-public class ProductController {
+public class  ProductController {
 
     private final String UPLOAD_DIR = "src/main/resources/static/Admin/img/products/";
 
