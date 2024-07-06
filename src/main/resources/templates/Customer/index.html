@@ -40,10 +40,9 @@
         .product__card .btn-add-to-cart:hover,
         .product__card .btn-view-detail:hover {
             background-color: #218838;
+              margin-left: 10px;
         }
-        .product__card .btn-view-detail {
-            margin-left: 10px;
-        }
+
         /* Chatbox CSS */
         .chatbox {
             position: fixed;
@@ -252,7 +251,7 @@
     </section>
     <!-- Chatbox -->
     <div class="chatbox">
-        <div class="chatbox-header">Chat với chúng tôi!!</div>
+        <div class="chatbox-header">Chat với chúng tôi!</div>
         <div class="chatbox-body">
             <ul class="chatbox-messages">
                 <!-- Messages will be dynamically added here -->
@@ -271,6 +270,9 @@
 <!-- Scripts -->
 <script src="Customer/js/jq.js"></script>
 <script src="Customer/js/index.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     var stompClient = null;
 
