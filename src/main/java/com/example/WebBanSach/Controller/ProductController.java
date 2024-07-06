@@ -10,26 +10,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.ui.Model;
 
 import java.util.List;
 import java.util.Optional;
 
-@Controller
-public class  ProductController {
 
+@Controller
+public class    ProductController {
     private final String UPLOAD_DIR = "src/main/resources/static/Admin/img/products/";
 
     @Autowired
     private ProductService productService;
 
     @Autowired
-    private ProductReviewService productReviewService;
+    private UserServices userService;
 
     @Autowired
-    private UserServices userService;
+    private ProductReviewService productReviewService;
 
     @GetMapping("/")
     public String index(Model model) {
@@ -52,7 +53,6 @@ public class  ProductController {
     public String showContact(Model model) {
         return "Customer/contact";
     }
-
     @GetMapping("/post")
     public String showPost(Model model) {
         return "Customer/post";
@@ -112,4 +112,5 @@ public class  ProductController {
         // Redirect to the product detail page after submitting the review
         return "redirect:/product/detail/" + productId;
     }
+
 }
