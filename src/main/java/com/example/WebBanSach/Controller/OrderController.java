@@ -4,6 +4,7 @@ import com.example.WebBanSach.entity.*;
 import com.example.WebBanSach.services.CartService;
 import com.example.WebBanSach.services.OrderService;
 import com.example.WebBanSach.services.ProductService; // Add this import
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,7 @@ public class OrderController {
                               @RequestParam String notes,
                               @RequestParam String paymentMethod,
                               Model model) {
-
+        try {
         List<CartItem> cartItems = cartService.getCartItems();
         double totalPrice = cartService.calculateTotalPrice(cartItems);
 
@@ -90,12 +92,31 @@ public class OrderController {
             CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
             orderService.saveOrder(order, customUserDetail.getUser());
         }
-
+        if ("VNPay".equals(paymentMethod)) {
+            return "redirect:/api/payment/vnpay_payment";
+        }
         cartService.clearCart();
 
         return "redirect:/order/confirmation";
+    } catch (Exception e) {
+        model.addAttribute("error", "Đã xảy ra lỗi trong quá trình xử lý đơn hàng.");
+        return "cart/checkout";
+    }
     }
 
+    @GetMapping("/vnpay_return")
+    public String vnpayReturn(@RequestParam Map<String,String> allParams, Model model, HttpServletRequest request ) {
+        // Xử lý kết quả thanh toán từ VNPay
+        if (allParams.containsKey("vnp_ResponseCode") && "00".equals(allParams.get("vnp_ResponseCode"))) {
+            // Thanh toán thành công
+            model.addAttribute("paidAmount", allParams.get("vnp_Amount"));
+            return "redirect:/order/confirmation";
+        } else {
+            // Thanh toán thất bại hoặc không có thông tin vnp_ResponseCode
+            model.addAttribute("error", "VNPay payment failed or incomplete.");
+            return "redirect:/order/vnp_return"; // Redirect to checkout or another appropriate page
+        }
+    }
 
 
     @GetMapping("/confirmation")
