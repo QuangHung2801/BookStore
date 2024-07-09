@@ -1,9 +1,6 @@
 package com.example.WebBanSach.Controller;
 
-import com.example.WebBanSach.entity.Category;
-import com.example.WebBanSach.entity.Order;
-import com.example.WebBanSach.entity.Product;
-import com.example.WebBanSach.entity.User;
+import com.example.WebBanSach.entity.*;
 import com.example.WebBanSach.services.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +14,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +43,21 @@ public class AdminController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private PolicyService policyService;
+
+    @Autowired
+    private OrderingMethodsService orderingMethodsService;
+
+    @Autowired
+    private PaymentMethodsService paymentMethodsService;
+
+    @Autowired
+    private ShippingMethodsService shippingMethodsService;
+
+    @Autowired
+    private UserGuidesService userGuidesService;
 
     @GetMapping()
     public String showAllProducts(@RequestParam(defaultValue = "0") int page,
@@ -83,7 +94,6 @@ public class AdminController {
 //    }
 
     @GetMapping("/products/add_product")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public String showAddProductForm(Model model) {
         model.addAttribute("product", new Product());
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -105,7 +115,7 @@ public class AdminController {
             try {
                 String fileName = StringUtils.cleanPath(imageFile.getOriginalFilename());
                 product.setImg1(fileName);
-                String uploadDir = "src/main/resources/static/Admin/img";
+                String uploadDir = "static/Admin/img"; // Update with your external directory path
                 FileUploadUtil.saveFile(uploadDir, fileName, imageFile);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -154,7 +164,7 @@ public class AdminController {
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
                 String fileName = StringUtils.cleanPath(imageFile.getOriginalFilename());
-                String uploadDir = "src/main/resources/static/Admin/img";
+                String uploadDir = "static/Admin/img";
                 // Save new image
                 FileUploadUtil.saveFile(uploadDir, fileName, imageFile);
 
@@ -180,7 +190,7 @@ public class AdminController {
     @GetMapping("/products/delete/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public String deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+        productService.deleteSoftProductById(id);
         return "redirect:/Admin";
     }
 
@@ -225,7 +235,7 @@ public class AdminController {
     @PostMapping("/products/delete_multiple")
     public String deleteMultipleProducts(@RequestParam("productIds") List<Long> productIds, RedirectAttributes redirectAttributes) {
         if (productIds != null) {
-            productService.deleteProductsByIds(productIds);
+            productService.deleteSoftProductsByIds(productIds);
             redirectAttributes.addFlashAttribute("message", "Deleted selected products successfully.");
         } else {
             redirectAttributes.addFlashAttribute("message", "No products selected for deletion.");
@@ -317,7 +327,7 @@ public class AdminController {
     public String listUsers(Model model) {
         List<User> users = userService.findAllUsers();
         model.addAttribute("users", users);
-        return "admin/users"; // Ensure this matches the Thymeleaf template name
+        return "Admin/users"; // Ensure this matches the Thymeleaf template name
     }
 
 
@@ -333,7 +343,7 @@ public class AdminController {
         Optional<Order> orderOptional = orderService.getOrderById(orderId);
         if (orderOptional.isPresent()) {
             model.addAttribute("order", orderOptional.get());
-            return "admin/orders/update-status";
+            return "Admin/orders/update-status";
         } else {
             // Xử lý khi không tìm thấy đơn hàng
             return "redirect:/Admin/manage-orders"; // Hoặc hiển thị thông báo lỗi
@@ -385,4 +395,264 @@ public class AdminController {
         return "redirect:/Admin/manage-orders";
     }
 
+    @GetMapping("/policies")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAllPolicies(Model model) {
+        List<Policy> policies = policyService.getAllPolicies();
+        model.addAttribute("policies", policies);
+        return "/Admin/policies/policy";
+    }
+
+    // Method to show the add policy form
+    @GetMapping("/policies/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAddPolicyForm(Model model) {
+        model.addAttribute("policy", new Policy());
+        return "/Admin/policies/add_policy";
+    }
+
+    // Method to handle the submission of the add policy form
+    @PostMapping("/policies/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String addPolicy(@ModelAttribute Policy policy) {
+        policyService.savePolicy(policy);
+        return "redirect:/Admin/policies";
+    }
+
+    @GetMapping("/policies/edit/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showEditPolicyForm(@PathVariable Long id, Model model) {
+        Policy policy = policyService.getPolicyById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid policy Id:" + id));
+        model.addAttribute("policy", policy);
+        return "Admin/policies/edit_policy"; // Ensure this matches the Thymeleaf template name
+    }
+
+    @PostMapping("/policies/edit")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String editPolicy(@ModelAttribute("policy") Policy policy, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "Admin/policies/edit_policy"; // Ensure this matches the Thymeleaf template name
+        }
+
+        policyService.updatePolicy(policy);
+        redirectAttributes.addFlashAttribute("message", "Policy updated successfully.");
+        return "redirect:/Admin/policies"; // Adjust this path as necessary
+    }
+
+    // Method to delete a policy
+    @GetMapping("/policies/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deletePolicy(@PathVariable Long id) {
+        policyService.deletePolicy(id);
+        return "redirect:/Admin/policies";
+    }
+    @GetMapping("/orderingmethods")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAllOrderingMethods(Model model) {
+        List<OrderingMethods> orderingMethods = orderingMethodsService.getAllOrderingMethods();
+        model.addAttribute("orderingmethods", orderingMethods);
+        return "/Admin/orderingmethods/orderingmethod";
+    }
+
+    // Method to show the add policy form
+    @GetMapping("/orderingmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAddOrderingMethodsForm(Model model) {
+        model.addAttribute("orderingmethod", new OrderingMethods());
+        return "/Admin/orderingmethods/add_orderingmethod";
+    }
+
+    // Method to handle the submission of the add policy form
+    @PostMapping("/orderingmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String addOrderingMethods(@ModelAttribute OrderingMethods orderingMethods) {
+        orderingMethodsService.saveOrderingMethods(orderingMethods);
+        return "redirect:/Admin/orderingmethods";
+    }
+
+    @GetMapping("/orderingmethods/edit/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showEditOrderingMethodsForm(@PathVariable Long id, Model model) {
+        OrderingMethods orderingMethods = orderingMethodsService.getOrderingMethodsById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid ordering methods Id:" + id));
+        model.addAttribute("orderingmethod", orderingMethods);
+        return "Admin/orderingmethods/edit_orderingmethod"; // Ensure this matches the Thymeleaf template name
+    }
+
+    @PostMapping("/orderingmethods/edit")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String editOrderingMethods(@ModelAttribute("orderingmethod") OrderingMethods orderingMethods, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "Admin/orderingmethods/edit_orderingmethod"; // Ensure this matches the Thymeleaf template name
+        }
+
+        orderingMethodsService.updateOrderingMethods(orderingMethods);
+        redirectAttributes.addFlashAttribute("message", "Ordering methods updated successfully.");
+        return "redirect:/Admin/orderingmethods"; // Adjust this path as necessary
+    }
+
+    // Method to delete a policy
+    @GetMapping("/orderingmethods/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deleteOrderingMethods(@PathVariable Long id) {
+        orderingMethodsService.deleteOrderingMethods(id);
+        return "redirect:/Admin/orderingmethods";
+    }
+    @GetMapping("/paymentmethods")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAllPaymentMethods(Model model) {
+        List<PaymentMethods> paymentMethods = paymentMethodsService.getAllPaymentMethods();
+        model.addAttribute("paymentmethods", paymentMethods);
+        return "/Admin/paymentmethods/paymentmethod";
+    }
+
+    // Method to show the add policy form
+    @GetMapping("/paymentmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAddPaymentMethodsForm(Model model) {
+        model.addAttribute("paymentmethod", new PaymentMethods());
+        return "/Admin/paymentmethods/add_paymentmethod";
+    }
+
+    // Method to handle the submission of the add policy form
+    @PostMapping("/paymentmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String addPaymentMethods(@ModelAttribute PaymentMethods paymentMethods) {
+        paymentMethodsService.savePaymentMethods(paymentMethods);
+        return "redirect:/Admin/paymentmethods";
+    }
+
+    @GetMapping("/paymentmethods/edit/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showEditPaymentMethodsForm(@PathVariable Long id, Model model) {
+        PaymentMethods paymentMethods = paymentMethodsService.getPaymentMethodsById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid payment methods Id:" + id));
+        model.addAttribute("paymentmethod", paymentMethods);
+        return "Admin/paymentmethods/edit_paymentmethod"; // Ensure this matches the Thymeleaf template name
+    }
+
+    @PostMapping("/paymentmethods/edit")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String editPaymentMethods(@ModelAttribute("paymentmethod") PaymentMethods paymentMethods, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "Admin/paymentmethods/edit_paymentmethod"; // Ensure this matches the Thymeleaf template name
+        }
+
+        paymentMethodsService.updatePaymentMethods(paymentMethods);
+        redirectAttributes.addFlashAttribute("message", "Payment methods updated successfully.");
+        return "redirect:/Admin/paymentmethods"; // Adjust this path as necessary
+    }
+
+    // Method to delete a policy
+    @GetMapping("/paymentmethods/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deletePaymentMethods(@PathVariable Long id) {
+        paymentMethodsService.deletePaymentMethods(id);
+        return "redirect:/Admin/paymentmethods";
+    }
+    @GetMapping("/shippingmethods")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAllShippingMethods(Model model) {
+        List<ShippingMethods> shippingMethods = shippingMethodsService.getAllShippingMethods();
+        model.addAttribute("shippingmethods", shippingMethods);
+        return "/Admin/shippingmethods/shippingmethod";
+    }
+
+    // Method to show the add policy form
+    @GetMapping("/shippingmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAddShippingMethodsForm(Model model) {
+        model.addAttribute("shippingmethod", new ShippingMethods());
+        return "/Admin/shippingmethods/add_shippingmethod";
+    }
+
+    // Method to handle the submission of the add policy form
+    @PostMapping("/shippingmethods/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String addShippingMethods(@ModelAttribute ShippingMethods shippingMethods) {
+        shippingMethodsService.saveShippingMethods(shippingMethods);
+        return "redirect:/Admin/shippingmethods";
+    }
+
+    @GetMapping("/shippingmethods/edit/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showEditShippingMethodsForm(@PathVariable Long id, Model model) {
+        ShippingMethods shippingMethods = shippingMethodsService.getShippingMethodsById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid shipping methods Id:" + id));
+        model.addAttribute("shippingmethod", shippingMethods);
+        return "Admin/shippingmethods/edit_shippingmethod"; // Ensure this matches the Thymeleaf template name
+    }
+
+    @PostMapping("/shippingmethods/edit")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String editShippingMethods(@ModelAttribute("shippingmethod") ShippingMethods shippingMethods, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "Admin/shippingmethods/edit_shippingmethod"; // Ensure this matches the Thymeleaf template name
+        }
+
+        shippingMethodsService.updateShippingMethods(shippingMethods);
+        redirectAttributes.addFlashAttribute("message", "Shipping methods updated successfully.");
+        return "redirect:/Admin/shippingmethods"; // Adjust this path as necessary
+    }
+
+    // Method to delete a policy
+    @GetMapping("/shippingmethods/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deleteShippingMethods(@PathVariable Long id) {
+        shippingMethodsService.deleteShippingMethods(id);
+        return "redirect:/Admin/shippingmethods";
+    }
+    @GetMapping("/userguides")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAllUserGuides(Model model) {
+        List<UserGuides> userGuides = userGuidesService.getAllUserGuides();
+        model.addAttribute("userguides", userGuides);
+        return "/Admin/userguides/userguide";
+    }
+
+    // Method to show the add policy form
+    @GetMapping("/userguides/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showAddUserGuidesForm(Model model) {
+        model.addAttribute("userguide", new UserGuides());
+        return "/Admin/userguides/add_userguide";
+    }
+
+    // Method to handle the submission of the add policy form
+    @PostMapping("/userguides/add")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String addUserGuides(@ModelAttribute UserGuides userGuides) {
+        userGuidesService.saveUserGuides(userGuides);
+        return "redirect:/Admin/userguides";
+    }
+
+    @GetMapping("/userguides/edit/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String showEditUserGuidesForm(@PathVariable Long id, Model model) {
+        UserGuides userGuides = userGuidesService.getUserGuidesById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user guides Id:" + id));
+        model.addAttribute("userguide", userGuides);
+        return "Admin/userguides/edit_userguide"; // Ensure this matches the Thymeleaf template name
+    }
+
+    @PostMapping("/userguides/edit")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String editUserGuides(@ModelAttribute("userguide") UserGuides userGuides, BindingResult result, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "Admin/userguides/edit_userguide"; // Ensure this matches the Thymeleaf template name
+        }
+
+        userGuidesService.updateUserGuides(userGuides);
+        redirectAttributes.addFlashAttribute("message", "User guides updated successfully.");
+        return "redirect:/Admin/userguides"; // Adjust this path as necessary
+    }
+
+    // Method to delete a policy
+    @GetMapping("/userguides/delete/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deleteUserGuides(@PathVariable Long id) {
+        userGuidesService.deleteUserGuides(id);
+        return "redirect:/Admin/userguides";
+    }
 }

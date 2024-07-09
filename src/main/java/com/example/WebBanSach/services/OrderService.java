@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,6 +91,34 @@ public class OrderService {
     // Phương thức để hủy đơn hàng
     public Order cancelOrder(Long orderId) {
         return changeOrderStatus(orderId, "Hủy bỏ");
+    }
+    public List<Order> getOrdersByDateRange(Date fromDate, Date toDate) {
+        return orderRepository.findByOrderDateBetween(fromDate, toDate);
+    }
+
+    public double calculateTotalRevenue(Date startDate, Date endDate) {
+        if (startDate == null && endDate == null) {
+            // Calculate total revenue for all orders if both startDate and endDate are null
+            List<Order> allOrders = orderRepository.findAll();
+            double totalRevenue = 0.0;
+            for (Order order : allOrders) {
+                totalRevenue += order.getTotalPrice();
+            }
+            return totalRevenue;
+        } else if (startDate != null && endDate != null) {
+            // Calculate total revenue within the specified date range
+            if (endDate.before(startDate)) {
+                throw new IllegalArgumentException("End date cannot be before start date");
+            }
+            List<Order> orders = orderRepository.findByOrderDateBetween(startDate, endDate);
+            double totalRevenue = 0.0;
+            for (Order order : orders) {
+                totalRevenue += order.getTotalPrice();
+            }
+            return totalRevenue;
+        } else {
+            throw new IllegalArgumentException("Invalid parameters");
+        }
     }
 }
 
