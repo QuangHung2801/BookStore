@@ -4,6 +4,7 @@ import com.example.WebBanSach.entity.*;
 import com.example.WebBanSach.services.CartService;
 import com.example.WebBanSach.services.OrderService;
 import com.example.WebBanSach.services.ProductService; // Add this import
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -102,6 +104,63 @@ public class OrderController {
         return "cart/order-confirmation";
     }
 
+    @GetMapping("/list")
+    public String getOrdersByDateRange(
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
+            @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate,
+            Model model) {
+        List<Order> orders = orderService.getOrdersByDateRange(fromDate, toDate);
+        model.addAttribute("orders", orders);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
+        return "Admin/orders";
+    }
+
+    @GetMapping("/revenue")
+    public String getTotalRevenueByDateRange(
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
+            @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate,
+            Model model) {
+        double totalRevenue = orderService.calculateTotalRevenue(fromDate, toDate);
+        model.addAttribute("totalRevenue", totalRevenue);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
+        return "Admin/revenue";
+    }
+
+    @GetMapping("/report")
+    public String showRevenueReportForm(Model model) {
+        model.addAttribute("fromDate", LocalDate.now());
+        model.addAttribute("toDate", LocalDate.now());
+        return "Admin/revenue-report";
+    }
+
+    @PostMapping("/report")
+    public String generateRevenueReport(
+            @RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
+            @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate,
+            Model model) {
+        try {
+            List<Order> orders = orderService.getOrdersByDateRange(fromDate, toDate);
+            double totalRevenue = orderService.calculateTotalRevenue(fromDate, toDate);
+
+            model.addAttribute("fromDate", fromDate);
+            model.addAttribute("toDate", toDate);
+            model.addAttribute("totalRevenue", totalRevenue);
+            model.addAttribute("orders", orders);
+
+            return "Admin/revenue-report";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("error", "An error occurred while processing revenue report.");
+            return "Admin/revenue-report";
+        }
+    }
+
+    @GetMapping("/reset")
+    public String resetTotal(Model model) {
+        return "redirect:/Admin/report";
+    }
 
 
 }

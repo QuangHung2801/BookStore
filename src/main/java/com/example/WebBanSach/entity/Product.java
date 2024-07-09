@@ -63,5 +63,16 @@ public class Product {
                 user.equals(other.user);
     }
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
+    // Custom getter for isDeleted
+    public boolean isIsDeleted() {
+        return isDeleted;
+    }
+
+    // Custom setter for isDeleted
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
 }

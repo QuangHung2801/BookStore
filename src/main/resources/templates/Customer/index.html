@@ -251,7 +251,7 @@
                 <div class="col-md-12">
                     <div class="row">
                         <!-- Sử dụng Thymeleaf để lặp qua danh sách sản phẩm và hiển thị -->
-                        <div th:each="product : ${products}" class="col-lg-4 col-md-6 mb-4">
+                        <div th:each="product : ${products}" th:if="${not product.isDeleted}" class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 product__card">
                                 <!-- Hình ảnh sản phẩm -->
                                 <img class="card-img-top" th:src="@{/Admin/img/{img1}(img1=${product.img1})}" alt="">

@@ -2,6 +2,7 @@ package com.example.WebBanSach.services;
 
 import com.example.WebBanSach.entity.Product;
 import com.example.WebBanSach.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class ProductService {
     }
 
     public void addProduct(Product product) {
+        product.setIsDeleted(false);
         productRepository.save(product);
     }
 
@@ -57,5 +59,24 @@ public class ProductService {
 
     public List<Product> findRelatedProducts(Long categoryId, Long productId) {
         return productRepository.findByCategoryIdAndIdNot(categoryId, productId);
+    }
+    @Transactional
+    public void deleteSoftProductsByIds(List<Long> productIds) {
+        for (Long productId : productIds) {
+            Product product = productRepository.findById(productId).orElse(null);
+            if (product != null) {
+                product.setIsDeleted(true);
+                productRepository.save(product);
+            }
+        }
+    }
+
+    @Transactional
+    public void deleteSoftProductById(Long productId) {
+        Product product = productRepository.findById(productId).orElse(null);
+        if (product != null) {
+            product.setIsDeleted(true);
+            productRepository.save(product);
+        }
     }
 }
